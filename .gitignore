@@ -1,0 +1,6 @@
+*.sql
+.venv
+*.csv
+*.txt
+*.pyc
+__pycache__/
