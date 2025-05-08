@@ -19,34 +19,59 @@ class DataParser:
         Each dictionary represents a row in the data file.
         """
         data = []
+        nmi = None
+        interval = None
         
         for line in self.block:
             # Assuming the data is comma-separated
             row = line.strip()
+            
             if not row:
                 continue
             if row.startswith('200'):
-                parts = row.split(',')
-                nmi = parts[1]
-                interval = int(parts[8])
+                try:
+                    # Extract the NMI and interval from the header
+                    parts = row.split(',')
+                    nmi = parts[1]
+                    interval = int(parts[8])
+                except Exception as e:
+                    # Print the error
+                    print(f"Error parsing 200 line: {line}. Error: {e}")
+                    nmi = None
+                    interval = None
+                    continue
                 
             elif row.startswith('300'):
-                parts = row.split(',')
-                timestamp = parts[1]
+                if nmi is None or interval is None:
+                    # If we don't have a valid NMI or interval, skip this line
+                    print(f"Skip parsing 300 line: {line}. Error: Missing nmi or interval.")
+                    continue
+                
                 try:
-                    timestamp = datetime.datetime.strptime(timestamp, '%Y%m%d')
-                except Exception:
-                    continue    
-                number_of_intervals_per_day = round(24 * 60 / interval)
-                readings = parts[2:2 + number_of_intervals_per_day]
-                consumption = self.calculate_consumption(values=readings)   
-                id  = uuid.uuid4()
-                data.append({
-                    'id': id,
-                    'nmi': nmi,
-                    'timestamp': timestamp,
-                    'consumption': consumption
-                })
+                    parts = row.split(',')
+                    timestamp = parts[1]
+                    try:
+                        timestamp = datetime.datetime.strptime(timestamp, '%Y%m%d')
+                    except Exception:
+                        continue    
+                    number_of_intervals_per_day = round(24 * 60 / interval)
+                    readings = parts[2:2 + number_of_intervals_per_day]
+                    consumption = self.calculate_consumption(values=readings)   
+                    id  = uuid.uuid4()
+                    if self.is_nmi_timestamp_unique(nmi, timestamp, data):
+                        data.append({
+                            'id': id,
+                            'nmi': nmi,
+                            'timestamp': timestamp,
+                            'consumption': consumption
+                        })
+                    else:
+                        print(f"Skip parsing 300 line: {line}. Error: Duplicate entry found for NMI: {nmi} at timestamp: {timestamp}. Skipping.")
+                
+                except Exception as e:
+                    # Print the error
+                    print(f"Error parsing 300 line: {line}. Error: {e}")
+                    continue
         
         return data
     
@@ -56,7 +81,17 @@ class DataParser:
         """
         clean_values = [float(value) for value in values]
         return round(sum(clean_values), 2)
-       
+    
+    def is_nmi_timestamp_unique(self, nmi, timestamp, data):
+        """
+        Checks if the NMI and timestamp combination is unique in the data.
+        """
+        for parsed_dict in data:
+            if parsed_dict['nmi'] == nmi and parsed_dict['timestamp'] == timestamp:
+                return False
+        return True
+    
+    
 class DDLScriptCreatorForMeterReadings:
     def __init__(self, parsed_data, output_file_path):
         self.data = parsed_data
