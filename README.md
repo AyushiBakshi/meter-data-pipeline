@@ -47,11 +47,10 @@ The system follows a **Layered Architecture** with the following components:
 
 ### Requirements
 - Python 3.13+
-- Linux
-- Postgres 14+
+- Postgres 14+ (reference guide https://www.prisma.io/dataguide/postgresql/setting-up-a-local-postgresql-database )
 
 ### Setup
-To run the project, make sure you are inside the root folder "cinema_ticketing-main" and then follow these steps:
+To run the project, make sure you are inside the root folder "meter-data-pipeline" and then follow these steps:
 
 1. **Create a virtual environment (optional but recommended)**:
    ```bash
@@ -60,22 +59,44 @@ To run the project, make sure you are inside the root folder "cinema_ticketing-m
 2. **Install the requirements**:
    ```bash
    pip install -r requirements.txt
-3. **Navigate to the app folder**:
+3. **Navigate to the main app folder**:
    ```bash
-   cd cinema_booking
-4. **Setup the database**:
+   cd src
+4. **Add database details in settings.py**:
+   ```bash
+   vi src/settings.py
+   ```
+   Scroll down to find DATABASES and enter the details
+   ```bash
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': '<db_name>',
+        'USER': '<user>',
+        'PASSWORD': '<password>',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+    }
+   ```
+   Save and close the file
+ 
+
+5. **Setup the database**:
    ```bash
    python manage.py migrate
 
+Your project setup is complete.
+
 ### Command Usages
 
-Always make sure you are in the directory "cinema_ticketing-main/cinema_booking"
+Always make sure you are in the directory "meter-data-pipeline/src"
 
 #### Running the App
 
-To start the cinema booking system from the command line, use the following command:
+To start the app, use the following command:
    ```bash
-   python manage.py cinema_booking_system
+   python manage.py parse_data --file <absolute_path_to_nem12_data.csv>
    ```
 #### Tests
 To run the tests from command line, use the following command:
@@ -90,23 +111,23 @@ meter_data_pipeline/src
 ├── data_ingestion_app             - App for NEM12 data ingestion
 │   ├── admin.py                      
 │   ├── apps.py
-│   ├── constants.py                    - Configs specific to the app
+│   ├── constants.py               - Configs specific to the app
 │   ├── management
 │   │   └── commands
-│   │       └── parse_data.py.        - Custom command for initiating data parsing
-│   ├── migrations                        - Versioned changed to database
+│   │       └── parse_data.py.     - Custom command for initiating data parsing
+│   ├── migrations                 - Versioned changed to database
 │   │   ├── __init__.py
 │   │   ├── 0001_initial.py
 │   │   ├── 0002_alter_meterreadings_id.py
 │   │   ├── 0003_alter_meterreadings_timestamp.py
 │   │   ├── 0004_alter_meterreadings_timestamp.py
 │   │   └── 0005_alter_meterreadings_nmi.py
-│   ├── models.py                    - Database tables
-│   ├── services.py                   - Logic for parsing and writing output file
-│   ├── tests.py                         - Contains unit tests and integration tests
-│   └── views.py                       - Logic for API (not used for now) 
+│   ├── models.py                  - Database tables
+│   ├── services.py                - Logic for parsing and writing output file
+│   ├── tests.py                   - Contains unit tests and integration tests
+│   └── views.py                   - Logic for API (not used for now) 
 ├── manage.py
-└── src                                      - Project settings module
+└── src                            - Project settings module
     ├── asgi.py
     ├── settings.py
     ├── urls.py
