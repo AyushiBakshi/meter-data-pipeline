@@ -111,23 +111,23 @@ meter_data_pipeline/src
 ├── data_ingestion_app             - App for NEM12 data ingestion
 │   ├── admin.py                      
 │   ├── apps.py
-│   ├── constants.py                    - Configs specific to the app
+│   ├── constants.py               - Configs specific to the app
 │   ├── management
 │   │   └── commands
-│   │       └── parse_data.py.        - Custom command for initiating data parsing
-│   ├── migrations                        - Versioned changed to database
+│   │       └── parse_data.py.     - Custom command for initiating data parsing
+│   ├── migrations                 - Versioned changed to database
 │   │   ├── __init__.py
 │   │   ├── 0001_initial.py
 │   │   ├── 0002_alter_meterreadings_id.py
 │   │   ├── 0003_alter_meterreadings_timestamp.py
 │   │   ├── 0004_alter_meterreadings_timestamp.py
 │   │   └── 0005_alter_meterreadings_nmi.py
-│   ├── models.py                    - Database tables
-│   ├── services.py                   - Logic for parsing and writing output file
-│   ├── tests.py                         - Contains unit tests and integration tests
-│   └── views.py                       - Logic for API (not used for now) 
+│   ├── models.py                  - Database tables
+│   ├── services.py                - Logic for parsing and writing output file
+│   ├── tests.py                   - Contains unit tests and integration tests
+│   └── views.py                   - Logic for API (not used for now) 
 ├── manage.py
-└── src                                      - Project settings module
+└── src                            - Project settings module
     ├── asgi.py
     ├── settings.py
     ├── urls.py
