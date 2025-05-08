@@ -5,7 +5,7 @@ from data_ingestion_app.constants import FilePaths
 
 
 
-OUTPUT_FILE_PATH = f"{FilePaths.OUTPUT_FILE_PATH}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+OUTPUT_FILE_PATH = f"{FilePaths.OUTPUT_FILE_NAME}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
 
 
 class DataParser:
@@ -50,13 +50,17 @@ class DataParser:
                 try:
                     parts = row.split(',')
                     timestamp = parts[1]
-                    try:
-                        timestamp = datetime.datetime.strptime(timestamp, '%Y%m%d')
-                    except Exception:
-                        continue    
+                    
+                    # Convert the timestamp to a datetime object
+                    timestamp = datetime.datetime.strptime(timestamp, '%Y%m%d')
+                   
+                    # Calculate the number of intervals per day
                     number_of_intervals_per_day = round(24 * 60 / interval)
+                    
+                    # Calculate the consumption
                     readings = parts[2:2 + number_of_intervals_per_day]
                     consumption = self.calculate_consumption(values=readings)   
+                    
                     id  = uuid.uuid4()
                     if self.is_nmi_timestamp_unique(nmi, timestamp, data):
                         data.append({
@@ -66,6 +70,7 @@ class DataParser:
                             'consumption': consumption
                         })
                     else:
+                        # Duplicate entry found, skip this line
                         print(f"Skip parsing 300 line: {line}. Error: Duplicate entry found for NMI: {nmi} at timestamp: {timestamp}. Skipping.")
                 
                 except Exception as e:
@@ -77,7 +82,7 @@ class DataParser:
     
     def calculate_consumption(self, values):
         """
-        Calculates the total consumption between two timestamps.
+        Calculates the total consumption based on interval readings.
         """
         clean_values = [float(value) for value in values]
         return round(sum(clean_values), 2)
@@ -120,8 +125,12 @@ def process_data(queue):
         block = queue.get()  # Get a block from the queue
         if block is None:  # If None, exit the loop
             break
+        
+        # Parse the block
         parser = DataParser(block)
         parsed_rows = parser.parse()
+        
+        # Create the Insert Values script
         create_script = DDLScriptCreatorForMeterReadings(parsed_rows, OUTPUT_FILE_PATH)
         create_script.insert_values_script()
 
